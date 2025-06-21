@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package orderpb;
+
+option go_package = "internal/infra/grpc/pb;orderpb";
+
+message Order {
+  int64 id = 1;
+  string customerName = 2;
+  double amount = 3;
+  string status = 4;
+  string createdAt = 5;
+}
+
+message ListOrdersRequest {}
+
+message ListOrdersResponse {
+  repeated Order orders = 1;
+}
+
+service OrderService {
+  rpc ListOrders(ListOrdersRequest) returns (ListOrdersResponse);
+}

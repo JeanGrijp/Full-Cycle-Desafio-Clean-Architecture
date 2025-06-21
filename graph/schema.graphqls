@@ -1,0 +1,17 @@
+# GraphQL schema example
+#
+# https://gqlgen.com/getting-started/
+
+scalar Time
+
+type Order {
+  id: ID!
+  customerName: String!
+  amount: Float!
+  status: String!
+  createdAt: Time!
+}
+
+type Query {
+  listOrders: [Order!]!
+}
