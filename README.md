@@ -100,6 +100,44 @@ docker-compose up --build
 
 ---
 
+### Testando a API REST
+
+Você pode testar o endpoint REST usando o arquivo [`api.http`](./api.http) (recomendado para VS Code ou plugins de HTTP client) ou via curl:
+
+```http
+GET http://localhost:8080/orders
+Accept: application/json
+```
+ou com o curl:
+```
+curl -X GET http://localhost:8080/orders -H "Accept: application/json"
+```
+
+### Testando o graphQL
+Acesse o GraphQL Playground em [http://localhost:8081/](http://localhost:8081/) e execute a query:
+
+```graphql
+query {
+  listOrders {
+    id
+    customerName
+    amount
+    status
+    createdAt
+  }
+}
+````
+
+
+### Testando o gRPC
+Use o BloomRPC ou grpcurl para testar o serviço gRPC. Exemplo com grpcurl:
+
+```sh
+grpcurl -plaintext -d '{}' localhost:50051 orderpb.OrderService/ListOrders
+```
+
+---
+
 ## Estrutura do Projeto
 
 ```
