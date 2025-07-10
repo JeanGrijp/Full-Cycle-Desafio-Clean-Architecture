@@ -1,3 +1,4 @@
+// graph/schema.resolvers.go
 package graph
 
 // This file will be automatically regenerated based on the schema, any resolver implementations
@@ -6,14 +7,44 @@ package graph
 
 import (
 	"context"
-	"fmt"
+	"log/slog"
+	"strconv"
 
 	"github.com/JeanGrijp/Full-Cycle-Desafio-Clean-Architecture/graph/model"
 )
 
 // ListOrders is the resolver for the listOrders field.
 func (r *queryResolver) ListOrders(ctx context.Context) ([]*model.Order, error) {
-	panic(fmt.Errorf("not implemented: ListOrders - listOrders"))
+	ctx = context.WithValue(ctx, "resolver", "ListOrders")
+	slog.InfoContext(ctx, "Iniciando ListOrders resolver")
+	slog.InfoContext(ctx, "Entrou no resolver ListOrders!")
+	orders, err := r.OrderUseCase.Execute()
+	if err != nil {
+		slog.ErrorContext(ctx, "Erro ao executar OrderUseCase.Execute", "error", err)
+		return nil, err
+	}
+
+	slog.InfoContext(ctx, "Pedidos listados com sucesso", "count", len(orders))
+
+	var gqlOrders []*model.Order
+	for _, o := range orders {
+		gqlOrders = append(gqlOrders, &model.Order{
+			ID:           strconv.FormatInt(o.ID, 10), // string
+			CustomerName: o.CustomerName,              // string
+			Amount:       o.Amount,                    // float64
+			Status:       o.Status,                    // string
+			CreatedAt:    o.CreatedAt,                 // time.Time ou string, depende do seu model
+		})
+	}
+	slog.InfoContext(ctx, "Convertendo pedidos para o formato GraphQL", "count", len(gqlOrders))
+	if len(gqlOrders) == 0 {
+		slog.InfoContext(ctx, "Nenhum pedido encontrado")
+		return gqlOrders, nil // Retorna slice vazio
+	}
+	slog.InfoContext(ctx, "Pedidos convertidos com sucesso", "count", len(gqlOrders))
+	slog.InfoContext(ctx, "ListOrders resolver finalizado com sucesso")
+
+	return gqlOrders, nil
 }
 
 // Query returns QueryResolver implementation.

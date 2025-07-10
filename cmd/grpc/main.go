@@ -1,12 +1,17 @@
 package main
 
 import (
+	"context"
 	"database/sql"
+	"fmt"
 	"log"
+	"log/slog"
 	"net"
+	"os"
 
 	_ "github.com/lib/pq"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 
 	"github.com/JeanGrijp/Full-Cycle-Desafio-Clean-Architecture/grpcserver"
 	orderpb "github.com/JeanGrijp/Full-Cycle-Desafio-Clean-Architecture/internal/infra/grpc/pb"
@@ -15,9 +20,24 @@ import (
 )
 
 func main() {
-	db, err := sql.Open("postgres", "postgres://usuario:senha@localhost:5432/sua_base?sslmode=disable")
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	// Pegando configs do banco via ENV
+	dbUser := os.Getenv("DB_USER")
+	dbPassword := os.Getenv("DB_PASSWORD")
+	dbHost := os.Getenv("DB_HOST")
+	dbPort := os.Getenv("DB_PORT")
+	dbName := os.Getenv("DB_NAME")
+
+	dsn := fmt.Sprintf(
+		"postgres://%s:%s@%s:%s/%s?sslmode=disable",
+		dbUser, dbPassword, dbHost, dbPort, dbName,
+	)
+
+	db, err := sql.Open("postgres", dsn)
 	if err != nil {
-		log.Fatal("Erro ao conectar no banco:", err)
+		slog.ErrorContext(ctx, "Erro ao conectar ao banco de dados", "error", err)
+		log.Fatal(err)
 	}
 	defer db.Close()
 
@@ -25,6 +45,8 @@ func main() {
 	orderUseCase := &usecase.ListOrdersUseCase{Repo: orderRepo}
 
 	grpcServer := grpc.NewServer()
+	reflection.Register(grpcServer)
+
 	orderpb.RegisterOrderServiceServer(grpcServer, &grpcserver.OrderServiceServer{
 		OrderUseCase: orderUseCase,
 	})
